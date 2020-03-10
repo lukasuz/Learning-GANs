@@ -3,15 +3,16 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.datasets import mnist
+import keras.backend as K
 
 import models.dense_models as dense_models
 import models.cnn_models as cnn_models
 
 save_path = "./imgs/"
+log_dir = "./logs/"
 disc_input_dim_flat = 784
 disc_input_dim = (28,28,1)
 gen_input_dim = 100
-
 model_type = "cnn" # cnn / dense / conditional
 
 save_interval = 5
@@ -29,7 +30,8 @@ def load_data(flatten=True):
     return (x_train, y_train, x_test, y_test)
 
 
-def plot_generated_images(epoch, generator, noise=None, examples=100, dim=(10,10), figsize=(10,10)):
+def plot_generated_images(epoch, generator, noise=None, examples=100, dim=(10,10),
+                          figsize=(10,10), model_type=model_type):
 
     if noise == None:
         noise = np.random.normal(-1.0, 1.0, size=[examples, 100])
@@ -43,23 +45,42 @@ def plot_generated_images(epoch, generator, noise=None, examples=100, dim=(10,10
         plt.imshow(generated_images[i], interpolation='nearest', cmap='gray')
         plt.axis('off')
     plt.tight_layout()
-    plt.savefig(save_path+'gan_generated_image %d.png' %epoch)
+    plt.savefig(save_path+'%s_image %d.png' % (model_type, epoch))
     plt.close()
+
+def init_write_logs(identifer, model_type=model_type, log_dir=log_dir):
+    path = "{0}{1}_{2}.txt".format(log_dir, model_type, identifer)
+    with open(path, 'w') as  f:
+        f.write("Loss, Accuracy\n")
+
+
+def append_line(loss, acc, identifer, model_type=model_type, log_dir=log_dir):
+    path = "{0}{1}_{2}.txt".format(log_dir, model_type, identifer)
+    with open(path, 'a') as  f:
+        f.write("{0},{1}\n".format(loss, acc))
+
 
 def train(discriminator, generator, gan, noise_input=None, load_data_func=load_data, 
           gen_input_dim=100, epochs=400, batch_size=256, save_interval=0):
 
         (x_train, y_train, _, _) = load_data_func()
 
-        batch_count = math.ceil(x_train.shape[0] / batch_size)
+        # Due to flooring, going to remove some img each epoch
+        batch_count = math.floor(x_train.shape[0] / batch_size)
 
         if save_interval > 0 and noise_input == None:
             noise_input = np.random.uniform(-1.0, 1.0, size=[100, gen_input_dim])
+        
+        init_write_logs("gan")
+        init_write_logs("discriminator")
 
         for e in range(1, epochs+1):
+            indx_permutations = np.arange(x_train.shape[0])
+            np.random.shuffle(indx_permutations)
             
             for i in range(batch_count):
-                images_train = x_train[np.random.randint(0, x_train.shape[0], size=batch_size)]
+
+                images_train = x_train[indx_permutations[i*batch_size:(i+1)*batch_size]]
                 noise = np.random.uniform(-1.0, 1.0, size=[batch_size, gen_input_dim])
                 images_fake = generator.predict(noise)
 
@@ -81,12 +102,15 @@ def train(discriminator, generator, gan, noise_input=None, load_data_func=load_d
                 log_mesg = "%s [GAN loss: %f, acc: %f]" % (log_mesg, g_loss[0], g_loss[1])
                 print(log_mesg, end="")
 
+            # Append results of last batch of training
+            append_line(d_loss[0], d_loss[1], "discriminator")
+            append_line(g_loss[0], g_loss[1], "gan")
+
             if save_interval > 0:
-                if (i+1) % save_interval == 0:
+                if (e % save_interval == 0) or e == epochs:
                     plot_generated_images(e, generator)
 
             print("\n  Validation...") # TODO
-
 
 if model_type == "dense": 
     discriminator = dense_models.discriminator(disc_input_dim_flat)
@@ -94,6 +118,7 @@ if model_type == "dense":
     gan = dense_models.gan(discriminator, generator, gen_input_dim)
     train(discriminator, generator, gan, epochs=epochs, save_interval=save_interval,
           batch_size=batch_size)
+
 elif model_type == "cnn":
     ld = lambda : load_data(flatten=False)
     discriminator = cnn_models.discriminator(disc_input_dim)
@@ -101,9 +126,8 @@ elif model_type == "cnn":
     gan = cnn_models.gan(discriminator, generator, gen_input_dim)
     train(discriminator, generator, gan, epochs=epochs, save_interval=save_interval,
           batch_size=batch_size, load_data_func=ld)
+
 else:
     print("Conditional GAN not implemented yet.")
-
-
 
 

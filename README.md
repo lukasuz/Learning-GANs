@@ -1,6 +1,6 @@
 ## Learning GANs
 
-This repository is a little collection of mine on learning how to use different GANs on MNIST. It is mainly based on tutorials by Renu Khandelwal [0], Rowel Atienza [1], Jason Bronwlee [2]. Work in progress.
+This repository is a little collection on learning how to use different GANs on MNIST with Keras. Code is partly adapted from Renu Khandelwal [0], Rowel Atienza [1], Jason Bronwlee [2]. Work in progress.
 
 
 

@@ -9,6 +9,19 @@ This repository is a little collection of mine on learning how to use different 
 - ~~Dense GAN~~
 - ~~CNN GAN~~
 - Conditional GAN
+- Progressive GANs
+- Visualisation
+- Fix mode collapse
+
+
+
+#### Occurring Problems:
+
+- Partial mode collapse. Generator tends to generate the similar output or output containing similar features. Fixes:
+  - https://medium.com/intel-student-ambassadors/reducing-mode-collapse-in-gans-using-guided-latent-spaces-36f52a08a668
+- Identify point of convergence
+
+
 
 
 

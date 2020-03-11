@@ -28,7 +28,7 @@ def visualise_mode_type(mode_type):
         d_loss, d_acc = extract_data(d_path)
         g_loss, g_acc = extract_data(g_path)
         print("Showing results for \"{0}\"".format(mode_type))
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         print("Not data for \"{0}\" available yet.".format(mode_type))
         return
     

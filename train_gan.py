@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from keras.datasets import mnist
 import keras.backend as K
+import os.path
 
 import models.dense_models as dense_models
 import models.cnn_models as cnn_models
@@ -13,7 +14,7 @@ log_dir = "./logs/"
 disc_input_dim_flat = 784
 disc_input_dim = (28,28,1)
 gen_input_dim = 100
-model_type = "cnn" # cnn / dense / conditional
+model_type = "dense" # cnn / dense / conditional
 
 save_interval = 5
 epochs = 400
@@ -59,9 +60,23 @@ def append_line(loss, acc, identifer, model_type=model_type, log_dir=log_dir):
     with open(path, 'a') as  f:
         f.write("{0},{1}\n".format(loss, acc))
 
+def check_overwrite_ok(model_type=model_type):
+    path = "{0}{1}_{2}.txt".format(log_dir, model_type, "gan")
+    if os.path.exists(path):
+        key = input("Data for \"{0}\" already exist. You are about to overwrite it. Press \"y\" to continue: ".format(model_type))
+        if key == "y":
+            print("Overwriting files.")
+            return True
+        else:
+            print("Aborting.")
+            return False
+    return True
 
 def train(discriminator, generator, gan, noise_input=None, load_data_func=load_data, 
           gen_input_dim=100, epochs=400, batch_size=256, save_interval=0):
+
+        if not check_overwrite_ok():
+            return
 
         (x_train, y_train, _, _) = load_data_func()
 
@@ -95,6 +110,7 @@ def train(discriminator, generator, gan, noise_input=None, load_data_func=load_d
                 discriminator.trainable = False
                 
                 y = np.ones([batch_size, 1])
+                # TODO: use gaussian noise?
                 noise = np.random.uniform(-1.0, 1.0, size=[batch_size, gen_input_dim])
                 g_loss = gan.train_on_batch(noise, y)
                 

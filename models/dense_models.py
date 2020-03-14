@@ -5,28 +5,31 @@ Models adapted from https://medium.com/datadriveninvestor/generative-adversarial
 import keras
 from keras.layers import Dense, Dropout, Input
 from keras.models import Model, Sequential
-from keras.layers.advanced_activations import ReLU
+from keras.layers.advanced_activations import LeakyReLU
 from keras.optimizers import Adam
 
-def discriminator(input_dim=784, lr=0.001):
+def calc_decay(lr, epoch=100):
+    return lr/epoch
+
+def discriminator(input_dim=784, lr=0.00002):
     """ Dense Discriminator
     """
     m = Sequential()
     m.add(Dense(units=1024, input_dim=input_dim))
-    m.add(ReLU())
+    m.add(LeakyReLU(alpha=0.2))
     m.add(Dropout(0.3))
     
     m.add(Dense(units=512))
-    m.add(ReLU())
+    m.add(LeakyReLU(alpha=0.2))
     m.add(Dropout(0.3))
        
     m.add(Dense(units=256))
-    m.add(ReLU())
+    m.add(LeakyReLU(alpha=0.2))
     
     m.add(Dense(units=1, activation='sigmoid'))
     m.name = "Dense_Discriminator"
 
-    m.compile(loss='binary_crossentropy', optimizer=Adam(lr=lr, beta_1=0.5), metrics=['accuracy'])
+    m.compile(loss='binary_crossentropy', optimizer=Adam(lr=lr, beta_1=0.5, decay=calc_decay(lr)), metrics=['accuracy'])
     
     return m
 
@@ -35,15 +38,15 @@ def generator(input_dim=100):
     """
     m = Sequential()
     m.add(Dense(units=256, input_dim=input_dim))
-    m.add(ReLU())
+    m.add(LeakyReLU(alpha=0.2))
     m.add(Dropout(0.3))
     
     m.add(Dense(units=512))
-    m.add(ReLU())
+    m.add(LeakyReLU(alpha=0.2))
     m.add(Dropout(0.3))
     
     m.add(Dense(units=1024))
-    m.add(ReLU())
+    m.add(LeakyReLU(alpha=0.2))
     
     m.add(Dense(units=784, activation='tanh'))
     m.name = "Dense_Generator"
@@ -53,7 +56,7 @@ def generator(input_dim=100):
     return m
 
 
-def gan(discriminator, generator, gen_input_dim=100, lr=0.008):
+def gan(discriminator, generator, gen_input_dim=100, lr=0.00004):
     """ Dense GAN.
     """
     discriminator.trainable = False # Do not train generator during discriminator
@@ -62,7 +65,7 @@ def gan(discriminator, generator, gen_input_dim=100, lr=0.008):
     gan_output = discriminator(x) # output is output of the generator
     gan = Model(inputs=gan_input, outputs=gan_output, name="Dense_GAN") # combine both to a unified model
 
-    gan.compile(loss='binary_crossentropy', optimizer=Adam(lr=lr, beta_1=0.5), metrics=['accuracy'])
+    gan.compile(loss='binary_crossentropy', optimizer=Adam(lr=lr, beta_1=0.5, decay=calc_decay(lr)), metrics=['accuracy'])
 
     return gan
 

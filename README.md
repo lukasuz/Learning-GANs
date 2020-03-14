@@ -1,6 +1,6 @@
 ## Learning GANs
 
-This repository is a little collection on learning how to use different GANs on MNIST with Keras. 
+This repository is a little collection on learning how to use different GANs on MNIST with Keras.  Conditional GANs seem to outperform dense as well as simple CNN GANs for this little use-case. They are more stable and easier to train, and don't suffer from partial mode collapse.
 
 
 
@@ -8,10 +8,10 @@ This repository is a little collection on learning how to use different GANs on 
 
 - ~~Dense GAN~~
 - ~~CNN GAN~~
-- Conditional GAN
-- Progressive GANs
+- ~~Conditional GAN~~
 - ~~Visualisation~~
-- Fix mode collapse
+- ~~Fix mode collapse~~ (Solution: use Conditional GANs in this use case. It works very well.)
+- Progressive GANs
 
 
 
@@ -23,9 +23,10 @@ Generator tends to generate the similar output or output containing similar feat
 
 ![Mode Collapse](./readme_imgs/mode_collapse.png)
 
-Potential fixes: 
+Fix:
 
-- https://medium.com/intel-student-ambassadors/reducing-mode-collapse-in-gans-using-guided-latent-spaces-36f52a08a668
+- Use Conditional GAN
+- (Maybe this: https://medium.com/intel-student-ambassadors/reducing-mode-collapse-in-gans-using-guided-latent-spaces-36f52a08a668)
 
 
 
@@ -39,7 +40,7 @@ Learning rate decay does not seem to improve convergence
 
 #### References:
 
-Code is partly adapted from  [0], Rowel Atienza [1], Jason Bronwlee [2]. Work in progress.
+Code is partly adapted from [0], Rowel Atienza [1], Jason Bronwlee [2]. Work in progress.
 
 [0]  Renu Khandelwal -https://towardsdatascience.com/gan-by-example-using-keras-on-tensorflow-backend-1a6d515a60d0
 
